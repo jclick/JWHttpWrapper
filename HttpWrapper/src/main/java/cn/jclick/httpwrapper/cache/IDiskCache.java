@@ -1,22 +1,25 @@
 package cn.jclick.httpwrapper.cache;
 
+import java.io.File;
+import java.io.IOException;
+
 /**
  * Created by jclick on 16/1/6.
  */
 public interface IDiskCache {
 
 
-    String getDirectory();
+    File getDirectory();
 
-    String getString(String cacheKey);
+    String getString(String url);
 
-    byte[] getBytes(String cacheKey);
+    byte[] getBytes(String url);
 
-    void putString(String cacheKey, String value);
+    boolean putString(String url, String value) throws IOException;
 
-    void putBytes(String cacheKey, byte[] value);
+    boolean putBytes(String url, byte[] value) throws IOException;
 
-    void remove(String key);
+    boolean remove(String url);
 
     void clearAllCache();
 }

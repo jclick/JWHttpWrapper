@@ -12,7 +12,8 @@ public class HttpRequestAgent {
     private long maxRetryTimes;
     private long maxConnections;
 
-    private HttpRequestAgent(){}
+    private HttpRequestAgent(){
+    }
 
     public static HttpRequestAgent getInstance(){
         if (INSTANCE == null) {

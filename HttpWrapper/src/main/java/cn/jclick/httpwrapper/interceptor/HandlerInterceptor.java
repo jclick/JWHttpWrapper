@@ -7,7 +7,13 @@ public interface HandlerInterceptor {
 
     boolean preHandler();
 
+    /**
+     *
+     */
     void postHandle();
 
+    /**
+     * 执行完毕Callback后的回调
+     */
     void afterCompletion();
 }
