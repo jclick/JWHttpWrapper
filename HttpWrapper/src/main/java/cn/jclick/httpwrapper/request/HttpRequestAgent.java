@@ -1,5 +1,24 @@
 package cn.jclick.httpwrapper.request;
 
+import android.util.Log;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import cn.jclick.httpwrapper.interceptor.HandlerInterceptor;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.ConnectionPool;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 /**
  * Created by XuYingjian on 16/1/6.
  */
@@ -7,12 +26,16 @@ public class HttpRequestAgent {
 
     private static HttpRequestAgent INSTANCE;
 
+    private OkHttpClient okHttpClient;
     private String baseUrl;
-    private long connectionTimeOut;
-    private long maxRetryTimes;
-    private long maxConnections;
+
+    private RequestConfig config;
+    private List<HandlerInterceptor> interceptorList;
+    private final Map<Object, Call> allRequestMap = Collections
+            .synchronizedMap(new HashMap<Object, Call>());
 
     private HttpRequestAgent(){
+
     }
 
     public static HttpRequestAgent getInstance(){
@@ -26,48 +49,52 @@ public class HttpRequestAgent {
         return INSTANCE;
     }
 
-    public void executeRequest(BaseRequestClient requestClient){
+    public void init(final RequestConfig config){
+        this.config = config;
+        if (config == null){
+            okHttpClient = new OkHttpClient().newBuilder().build();
+        }else{
+            interceptorList = config.interceptorList;
+            this.baseUrl = config.baseUrl;
+            okHttpClient = new OkHttpClient().newBuilder().connectTimeout(config.connectionTimeOut, TimeUnit.MILLISECONDS)
+                    .connectionPool(new ConnectionPool(config.maxConnections, 5, TimeUnit.SECONDS))
+                    .build();
+            okHttpClient.interceptors().add(new Interceptor() {
+                @Override
+                public Response intercept(Chain chain) throws IOException {
+                    Request request = chain.request();
 
+                    // try the request
+                    Response response = chain.proceed(request);
+
+                    int tryCount = 0;
+                    while (!response.isSuccessful() && tryCount < config.maxRetries) {
+                        tryCount++;
+                        response = chain.proceed(request);
+                    }
+                    return response;
+                }
+            });
+        }
     }
 
-    public void interruptRequestByTag(Object ...tag){
+    public void executeRequest(BaseRequestClient requestClient){
+        Request request = new Request.Builder().tag(this).build();
+    }
 
+    public synchronized void interruptRequestByTag(Object ...tags){
+
+        for (Object obj : tags){
+            if (allRequestMap.containsKey(obj)){
+                allRequestMap.get(obj).cancel();
+                allRequestMap.remove(obj);
+            }
+        }
     }
 
     public void interruptAllRequest(){
-
-    }
-
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
-    public long getConnectionTimeOut() {
-        return connectionTimeOut;
-    }
-
-    public void setConnectionTimeOut(long connectionTimeOut) {
-        this.connectionTimeOut = connectionTimeOut;
-    }
-
-    public long getMaxRetryTimes() {
-        return maxRetryTimes;
-    }
-
-    public void setMaxRetryTimes(long maxRetryTimes) {
-        this.maxRetryTimes = maxRetryTimes;
-    }
-
-    public long getMaxConnections() {
-        return maxConnections;
-    }
-
-    public void setMaxConnections(long maxConnections) {
-        this.maxConnections = maxConnections;
+        if (okHttpClient != null){
+            okHttpClient.dispatcher().cancelAll();
+        }
     }
 }
