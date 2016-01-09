@@ -1,9 +1,8 @@
 package cn.jclick.httpwrapper.request;
 
-import android.util.Log;
+import android.text.TextUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 
 import cn.jclick.httpwrapper.interceptor.HandlerInterceptor;
 import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.ConnectionPool;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -78,7 +76,19 @@ public class HttpRequestAgent {
         }
     }
 
-    public void executeRequest(BaseRequestClient requestClient){
+    public void executeRequest(RequestParams params){
+        String baseUrl, url;
+        if (!TextUtils.isEmpty(params.baseUrl)){
+            baseUrl = params.baseUrl;
+        }else{
+            baseUrl = this.baseUrl;
+        }
+        url = params.url;
+        if (params.urlEncodeEnable && params.requestMethod == RequestParams.RequestMethod.RequestMethodGet){
+
+        }else{
+
+        }
         Request request = new Request.Builder().tag(this).build();
     }
 

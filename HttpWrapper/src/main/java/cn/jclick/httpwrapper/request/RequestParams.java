@@ -11,17 +11,17 @@ import cn.jclick.httpwrapper.interceptor.HandlerInterceptor;
  * Created by XuYingjian on 16/1/6.
  */
 public final class RequestParams {
-    final String url;
-    final String baseUrl;
-    final Object tag;
-    final long connectionTimeOut;
-    final RequestMethod requestMethod;
-    final Map<String, Object> requestParams;
-    final Map<String, String> requestHeaders;
-    final List<HandlerInterceptor> interceptorList;
-    final CallBack callBack;
+    public final String url;
+    public final String baseUrl;
+    public final Object tag;
+    public final long connectionTimeOut;
+    public final RequestMethod requestMethod;
+    public final Map<String, Object> requestParams;
+    public final Map<String, String> requestHeaders;
+    public final List<HandlerInterceptor> interceptorList;
+    public final CallBack callBack;
 
-    final boolean urlEncodeEnable;
+    public final boolean urlEncodeEnable;
 
     private RequestParams(final Builder builder) {
 
