@@ -1,25 +1,33 @@
 package cn.jclick.httpwrapper.request;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import cn.jclick.httpwrapper.callback.CallBack;
 import cn.jclick.httpwrapper.interceptor.HandlerInterceptor;
+import okhttp3.MediaType;
 
 /**
  * Created by XuYingjian on 16/1/6.
  */
 public final class RequestParams {
+
+    private static final MediaType MEDIA_TYPE_UNKNOWN = MediaType.parse("text/plain;charset=utf-8");;
+
     public final String url;
     public final String baseUrl;
     public final Object tag;
     public final long connectionTimeOut;
     public final RequestMethod requestMethod;
-    public final Map<String, Object> requestParams;
+    public final Map<String, String> requestParams;
     public final Map<String, String> requestHeaders;
+    public final File[] uploadFiles;
     public final List<HandlerInterceptor> interceptorList;
     public final CallBack callBack;
+
+    public final MediaType mediaType;
 
     public final boolean urlEncodeEnable;
 
@@ -28,6 +36,7 @@ public final class RequestParams {
         this.url = builder.url;
         this.baseUrl = builder.baseUrl;
         this.tag = builder.tag;
+        this.uploadFiles = builder.uploadFiles;
         this.connectionTimeOut = builder.connectionTimeOut;
         this.requestMethod = builder.requestMethod;
         this.requestParams = builder.requestParams;
@@ -35,6 +44,11 @@ public final class RequestParams {
         this.interceptorList = builder.interceptorList;
         this.callBack = builder.callBack;
         this.urlEncodeEnable = builder.urlEncodeEnable;
+        if (builder.mediaType == null){
+            this.mediaType = MEDIA_TYPE_UNKNOWN;
+        }else{
+            this.mediaType = builder.mediaType;
+        }
     }
 
     public static class Builder{
@@ -43,11 +57,13 @@ public final class RequestParams {
         private String baseUrl;
         private Object tag;
         private long connectionTimeOut;
-        private RequestMethod requestMethod;
-        private Map<String, Object> requestParams;
+        private RequestMethod requestMethod = RequestMethod.RequestMethodPost;
+        private Map<String, String> requestParams;
         private Map<String, String> requestHeaders;
+        private File[] uploadFiles;
         private List<HandlerInterceptor> interceptorList = new ArrayList<>();
 
+        private MediaType mediaType;
         private boolean urlEncodeEnable = true;
 
         private CallBack callBack;
@@ -64,6 +80,16 @@ public final class RequestParams {
 
         public Builder tag(Object tag){
             this.tag = tag;
+            return this;
+        }
+
+        public Builder mediaType(MediaType mediaType){
+            this.mediaType = mediaType;
+            return this;
+        }
+
+        public Builder uploadFiles(File ...files){
+            this.uploadFiles = files;
             return this;
         }
 
@@ -89,7 +115,7 @@ public final class RequestParams {
             return this;
         }
 
-        public Builder requestParams(Map<String, Object> requestParams){
+        public Builder requestParams(Map<String, String> requestParams){
             this.requestParams = requestParams;
             return this;
         }
@@ -127,6 +153,10 @@ public final class RequestParams {
         public Builder patch(){
             this.requestMethod = RequestMethod.RequestMethodPatch;
             return this;
+        }
+
+        public RequestParams build(){
+            return new RequestParams(this);
         }
     }
 

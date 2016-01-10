@@ -10,11 +10,14 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import cn.jclick.httpwrapper.interceptor.HandlerInterceptor;
+import cn.jclick.httpwrapper.utils.UrlUtils;
 import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.ConnectionPool;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
@@ -84,12 +87,65 @@ public class HttpRequestAgent {
             baseUrl = this.baseUrl;
         }
         url = params.url;
-        if (params.urlEncodeEnable && params.requestMethod == RequestParams.RequestMethod.RequestMethodGet){
-
-        }else{
-
+        if (!TextUtils.isEmpty(baseUrl)){
+            url = baseUrl.concat(url);
         }
-        Request request = new Request.Builder().tag(this).build();
+        Request.Builder builder = new Request.Builder();
+        if (params.tag != null){
+            builder = builder.tag(params.tag);
+        }
+        if (params.requestHeaders != null){
+            for (String key : params.requestHeaders.keySet()){
+                builder = builder.addHeader(key, params.requestHeaders.get(key));
+            }
+        }
+        final Object tag = params.tag;
+        Request request = buildRequest(params, builder, url);
+        Call call = okHttpClient.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                if (tag != null){
+                    allRequestMap.remove(tag);
+                }
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+                if (tag != null){
+                    allRequestMap.remove(tag);
+                }
+            }
+        });
+    }
+
+    private Request buildRequest(RequestParams params, Request.Builder builder, String url){
+        Request request = null;
+        if (params.requestMethod == RequestParams.RequestMethod.RequestMethodGet){
+            url = UrlUtils.getUrlWithQueryString(params.urlEncodeEnable, url, params);
+            request = builder.url(url).get().build();
+        }else{
+            RequestBody requestBody = RequestBuilder.buildRequestBody(params);
+            switch (params.requestMethod){
+                case RequestMethodDelete:
+                    builder = builder.delete(requestBody);
+                    break;
+                case RequestMethodHead:
+                    builder = builder.head();
+                    break;
+                case RequestMethodPatch:
+                    builder = builder.patch(requestBody);
+                    break;
+                case RequestMethodPost:
+                    builder = builder.post(requestBody);
+                    break;
+                case RequestMethodPut:
+                    builder = builder.put(requestBody);
+                    break;
+            }
+            request = builder.build();
+        }
+        return request;
     }
 
     public synchronized void interruptRequestByTag(Object ...tags){
