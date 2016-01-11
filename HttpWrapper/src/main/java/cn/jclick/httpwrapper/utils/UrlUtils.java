@@ -1,5 +1,6 @@
 package cn.jclick.httpwrapper.utils;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.UnsupportedEncodingException;
@@ -8,6 +9,8 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
+import cn.jclick.httpwrapper.request.HttpRequestAgent;
+import cn.jclick.httpwrapper.request.RequestConfig;
 import cn.jclick.httpwrapper.request.RequestParams;
 
 /**
@@ -16,6 +19,28 @@ import cn.jclick.httpwrapper.request.RequestParams;
 public class UrlUtils {
 
     public static final String TAG = "UrlUtils";
+
+    public static String getUrlWithQueryString(RequestParams params){
+        if (params == null){
+            return null;
+        }
+        RequestConfig config = HttpRequestAgent.getInstance().getConfig();
+        String baseUrl = null, url;
+        if (!TextUtils.isEmpty(params.baseUrl)){
+            baseUrl = params.baseUrl;
+        }else{
+            if (config != null){
+                baseUrl = config.baseUrl;
+            }
+        }
+        url = params.url;
+        if (!TextUtils.isEmpty(baseUrl)){
+            url = baseUrl.concat(url);
+        }
+        boolean shouldEncodeUrl = (params.urlEncodeEnable == null ? config.urlEncodeEnable : params.urlEncodeEnable);
+
+        return getUrlWithQueryString(shouldEncodeUrl, url, params);
+    }
 
     public static String getUrlWithQueryString(boolean shouldEncodeUrl, String url, RequestParams params) {
         if (url == null)
@@ -34,15 +59,7 @@ public class UrlUtils {
         if (params.requestParams != null) {
             String paramString = "";
             for (String key : params.requestParams.keySet()){
-                paramString += key + "&" + params.requestParams.get(key).toString();
-            }
-
-            if (shouldEncodeUrl){
-                try {
-                    paramString = URLEncoder.encode(paramString, "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
+                paramString += key + "=" + params.requestParams.get(key).toString();
             }
             if (!paramString.equals("") && !paramString.equals("?")) {
                 url += url.contains("?") ? "&" : "?";

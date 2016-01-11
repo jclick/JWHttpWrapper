@@ -5,11 +5,22 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import cn.jclick.httpwrapper.callback.StringCallback;
+import cn.jclick.httpwrapper.request.HttpRequestAgent;
+import cn.jclick.httpwrapper.request.RequestConfig;
+import cn.jclick.httpwrapper.request.RequestParams;
+
 public class MainActivity extends AppCompatActivity {
+
+    public static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +35,20 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+            }
+        });
+
+        HttpRequestAgent.getInstance().init(new RequestConfig.Builder().baseUrl("http://182.92.100.198:8888/").connectionTimeOut(30 *1000).build());
+
+        Map<String, String> map = new HashMap<>();
+        map.put("token", "18610823346");
+        RequestParams params = new RequestParams.Builder().url("app/patient/bindHospital.do").requestParams(map).post().build();
+        HttpRequestAgent.getInstance().executeRequest(params, new StringCallback(){
+
+            @Override
+            public void onSuccess(String result) {
+                super.onSuccess(result);
+                Log.i(TAG, "response is " + result);
             }
         });
     }

@@ -1,11 +1,16 @@
 package cn.jclick.httpwrapper.request;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.net.FileNameMap;
 import java.net.URLConnection;
 
+import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
+import okhttp3.Request;
 import okhttp3.RequestBody;
 
 /**
@@ -20,14 +25,29 @@ public class RequestBuilder {
         if (params.uploadFiles != null && params.uploadFiles.length > 0){
             return buildFileRequestBody(params);
         }else{
-            MultipartBody.Builder builder = new MultipartBody.Builder()
-                    .setType(params.mediaType);
-            if (params.requestParams != null){
-                for (String key : params.requestParams.keySet()){
-                    builder.addFormDataPart(key, params.requestParams.get(key));
+            if (params.mediaType.equals(MultipartBody.FORM.toString())){
+                MultipartBody.Builder builder = new MultipartBody.Builder()
+                        .setType(MultipartBody.FORM);
+                if (params.requestParams != null){
+                    for (String key : params.requestParams.keySet()){
+                        builder.addPart(Headers.of("Content-Disposition", "form-data; name=\"" + key + "\""),
+                                RequestBody.create(null, params.requestParams.get(key)));
+                    }
                 }
+                return builder.build();
+            }else{
+                JSONObject json = new JSONObject();
+                for (String key : params.requestParams.keySet()){
+                    try {
+                        json.put(key, params.requestParams.get(key));
+                        RequestBody requestBody = RequestBody.create(MediaType.parse(params.mediaType), json.toString());
+                        return requestBody;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return null;
             }
-            return builder.build();
         }
     }
 
@@ -46,7 +66,8 @@ public class RequestBuilder {
         }
         if (params.requestParams != null){
             for (String key : params.requestParams.keySet()){
-                builder.addFormDataPart(key, params.requestParams.get(key));
+                builder.addPart(Headers.of("Content-Disposition", "form-data; name=\"" + key + "\""),
+                        RequestBody.create(null, params.requestParams.get(key)));
             }
         }
         return builder.build();

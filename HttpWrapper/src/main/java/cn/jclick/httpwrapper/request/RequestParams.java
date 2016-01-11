@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import cn.jclick.httpwrapper.callback.CallBack;
+import cn.jclick.httpwrapper.callback.Callback;
 import cn.jclick.httpwrapper.interceptor.HandlerInterceptor;
 import okhttp3.MediaType;
 
@@ -14,7 +14,7 @@ import okhttp3.MediaType;
  */
 public final class RequestParams {
 
-    private static final MediaType MEDIA_TYPE_UNKNOWN = MediaType.parse("text/plain;charset=utf-8");;
+    private static final String DEFAULT_MEDIA_TYPE = "multipart/form-data";
 
     public final String url;
     public final String baseUrl;
@@ -25,11 +25,11 @@ public final class RequestParams {
     public final Map<String, String> requestHeaders;
     public final File[] uploadFiles;
     public final List<HandlerInterceptor> interceptorList;
-    public final CallBack callBack;
+    public final Callback callBack;
 
-    public final MediaType mediaType;
+    public final String mediaType;
 
-    public final boolean urlEncodeEnable;
+    public final Boolean urlEncodeEnable;
 
     private RequestParams(final Builder builder) {
 
@@ -45,7 +45,7 @@ public final class RequestParams {
         this.callBack = builder.callBack;
         this.urlEncodeEnable = builder.urlEncodeEnable;
         if (builder.mediaType == null){
-            this.mediaType = MEDIA_TYPE_UNKNOWN;
+            this.mediaType = DEFAULT_MEDIA_TYPE;
         }else{
             this.mediaType = builder.mediaType;
         }
@@ -63,10 +63,10 @@ public final class RequestParams {
         private File[] uploadFiles;
         private List<HandlerInterceptor> interceptorList = new ArrayList<>();
 
-        private MediaType mediaType;
-        private boolean urlEncodeEnable = true;
+        private String mediaType;
+        private Boolean urlEncodeEnable;
 
-        private CallBack callBack;
+        private Callback callBack;
 
         public Builder url(String url){
             this.url = url;
@@ -83,7 +83,7 @@ public final class RequestParams {
             return this;
         }
 
-        public Builder mediaType(MediaType mediaType){
+        public Builder mediaType(String mediaType){
             this.mediaType = mediaType;
             return this;
         }
@@ -103,7 +103,7 @@ public final class RequestParams {
             return this;
         }
 
-        public Builder callback(CallBack callBack){
+        public Builder callback(Callback callBack){
             this.callBack = callBack;
             return this;
         }
