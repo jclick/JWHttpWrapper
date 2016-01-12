@@ -1,19 +1,14 @@
 package cn.jclick.httpwrapper.callback;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
 import cn.jclick.httpwrapper.request.RequestParams;
 import cn.jclick.httpwrapper.utils.IOUtils;
-import cn.jclick.httpwrapper.utils.UrlUtils;
-import okhttp3.internal.Util;
-import okio.BufferedSource;
+import cn.jclick.httpwrapper.utils.WrapperUtils;
 
 /**
  * Created by jclick on 16/1/6.
@@ -24,8 +19,21 @@ public abstract class Callback {
     protected Map<String, List<String>> headers;
     protected Charset charset;
 
-    public void beforeStart(RequestParams params){
+    protected String cacheURL;
+
+    public boolean beforeStart(RequestParams params){
         this.params = params;
+        this.cacheURL = WrapperUtils.getUrlWithQueryString(params);
+        switch (params.cacheMode){
+            case ALWAYS_CACHE:
+
+                break;
+            case CACHE_WHEN_NO_NETWORK:
+
+                break;
+        }
+
+        return true;
     }
 
     public byte[] bytes(InputStream stream) throws IOException{
