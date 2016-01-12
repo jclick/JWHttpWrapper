@@ -26,6 +26,8 @@ public final class RequestParams {
     public final File[] uploadFiles;
     public final List<HandlerInterceptor> interceptorList;
     public final Callback callBack;
+    public final RequestConfig.HttpCacheMode cacheMode;
+    public final long cacheTimeInSeconds;
 
     public final String mediaType;
 
@@ -49,6 +51,17 @@ public final class RequestParams {
         }else{
             this.mediaType = builder.mediaType;
         }
+        if (builder.cacheMode == null){
+            cacheMode = HttpRequestAgent.getInstance().getConfig().cacheMode;
+        }else{
+            cacheMode = builder.cacheMode;
+        }
+
+        if (builder.cacheTimeInSeconds <= 0){
+            this.cacheTimeInSeconds = HttpRequestAgent.getInstance().getConfig().cacheTimeInSeconds;
+        }else{
+            this.cacheTimeInSeconds = builder.cacheTimeInSeconds;
+        }
     }
 
     public static class Builder{
@@ -62,11 +75,13 @@ public final class RequestParams {
         private Map<String, String> requestHeaders;
         private File[] uploadFiles;
         private List<HandlerInterceptor> interceptorList = new ArrayList<>();
+        private RequestConfig.HttpCacheMode cacheMode;
 
         private String mediaType;
         private Boolean urlEncodeEnable;
 
         private Callback callBack;
+        private long cacheTimeInSeconds;
 
         public Builder url(String url){
             this.url = url;
@@ -142,6 +157,16 @@ public final class RequestParams {
 
         public Builder delete(){
             this.requestMethod = RequestMethod.RequestMethodDelete;
+            return this;
+        }
+
+        public Builder cacheMode(RequestConfig.HttpCacheMode cacheMode){
+            this.cacheMode = cacheMode;
+            return this;
+        }
+
+        public Builder cacheTimeInSeconds(long cacheTimeInSeconds){
+            this.cacheTimeInSeconds = cacheTimeInSeconds;
             return this;
         }
 

@@ -15,7 +15,6 @@ public class LruDiskCache implements IDiskCache {
 	private static final String ERROR_ARG_NEGATIVE = " argument must be positive number";
 
 	protected DiskLruCache cache;
-	private File reserveCacheDir;
 
 	protected final FileNameGenerator fileNameGenerator;
 
@@ -23,13 +22,12 @@ public class LruDiskCache implements IDiskCache {
 
 	/**
 	 * @param cacheDir          Directory for file caching
-	 * @param reserveCacheDir   null-ok; Reserve directory for file caching. It's used when the primary directory isn't available.
 	 * @param fileNameGenerator Name generator for cached files. Generated names must match the regex
 	 *                          <strong>[a-z0-9_-]{1,64}</strong>
 	 * @param cacheMaxSize      Max cache size in bytes. <b>0</b> means cache size is unlimited.
 	 * @throws IOException if cache can't be initialized (e.g. "No space left on device")
 	 */
-	public LruDiskCache(File cacheDir, File reserveCacheDir, FileNameGenerator fileNameGenerator, long cacheMaxSize) throws IOException {
+	public LruDiskCache(File cacheDir, FileNameGenerator fileNameGenerator, long cacheMaxSize) throws IOException {
 		if (cacheDir == null) {
 			throw new IllegalArgumentException("cacheDir" + ERROR_ARG_NULL);
 		}
@@ -44,23 +42,16 @@ public class LruDiskCache implements IDiskCache {
 			cacheMaxSize = Long.MAX_VALUE;
 		}
 
-		this.reserveCacheDir = reserveCacheDir;
 		this.fileNameGenerator = fileNameGenerator;
-		initCache(cacheDir, reserveCacheDir, cacheMaxSize);
+		initCache(cacheDir, cacheMaxSize);
 	}
 
-	private void initCache(File cacheDir, File reserveCacheDir, long cacheMaxSize)
+	private void initCache(File cacheDir, long cacheMaxSize)
 			throws IOException {
 		try {
 			cache = DiskLruCache.open(cacheDir, 1, 1, cacheMaxSize);
 		} catch (IOException e) {
-			Log.e(TAG, e.getMessage());
-			if (reserveCacheDir != null) {
-				initCache(reserveCacheDir, null, cacheMaxSize);
-			}
-			if (cache == null) {
-				throw e; //new RuntimeException("Can't initialize disk cache", e);
-			}
+			throw e; //new RuntimeException("Can't initialize disk cache", e);
 		}
 	}
 
@@ -173,7 +164,7 @@ public class LruDiskCache implements IDiskCache {
 			Log.e(TAG, e.getMessage());
 		}
 		try {
-			initCache(cache.getDirectory(), reserveCacheDir, cache.getMaxSize());
+			initCache(cache.getDirectory(), cache.getMaxSize());
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage());
 		}

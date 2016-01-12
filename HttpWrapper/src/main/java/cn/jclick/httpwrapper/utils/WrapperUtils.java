@@ -16,9 +16,9 @@ import cn.jclick.httpwrapper.request.RequestParams;
 /**
  * Created by apple on 16/1/9.
  */
-public class UrlUtils {
+public class WrapperUtils {
 
-    public static final String TAG = "UrlUtils";
+    public static final String TAG = "WrapperUtils";
 
     public static String getUrlWithQueryString(RequestParams params){
         if (params == null){

@@ -10,28 +10,23 @@ import java.util.Map;
  * Created by XuYingjian on 16/1/11.
  */
 public class StringCallback extends Callback{
+
+
     @Override
     public void onResponse(int statusCode, Map<String, List<String>> headers, Charset charset, InputStream response) {
         super.onResponse(statusCode, headers, charset, response);
         try {
-            onSuccess(string(response, charset));
+            onResponse();
         } catch (IOException e) {
             e.printStackTrace();
             onFailed(e);
         }
     }
-
-    @Override
-    public void onError(Exception exception) {
-        super.onError(exception);
-        onFailed(exception);
-    }
-
-    public void onSuccess(String result){
+    protected void onSuccess(String string){
 
     }
 
-    public void onFailed(Exception exception){
-
+    protected void onSuccess(boolean fromCache, String string){
+        onSuccess(string);
     }
 }

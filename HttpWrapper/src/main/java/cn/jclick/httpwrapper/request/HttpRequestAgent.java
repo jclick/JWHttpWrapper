@@ -1,5 +1,6 @@
 package cn.jclick.httpwrapper.request;
 
+import android.content.Context;
 import android.text.TextUtils;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import cn.jclick.httpwrapper.interceptor.HandlerInterceptor;
-import cn.jclick.httpwrapper.utils.UrlUtils;
+import cn.jclick.httpwrapper.utils.WrapperUtils;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.ConnectionPool;
@@ -37,6 +38,8 @@ public class HttpRequestAgent {
     private String baseUrl;
     private boolean urlEncodeEnable;
 
+    private Context context;
+
     private RequestConfig requestConfig;
     private List<HandlerInterceptor> interceptorList;
     private final Map<Object, List<Call>> allRequestMap = Collections
@@ -57,9 +60,9 @@ public class HttpRequestAgent {
         return INSTANCE;
     }
 
-    public void init(RequestConfig config){
+    public void init(Context context, RequestConfig config){
         if (config == null){
-            requestConfig = new RequestConfig.Builder().defaultBuilder().build();
+            requestConfig = new RequestConfig.Builder(context).defaultBuilder().build();
         }
         this.requestConfig = config;
         interceptorList = config.interceptorList;
@@ -97,7 +100,10 @@ public class HttpRequestAgent {
         }
         final Request request = buildRequest(params, builder, url);
         if (callback != null){
-            callback.beforeStart(params);
+            boolean isNeedRequest = callback.beforeStart(params);
+            if (!isNeedRequest){
+                return;
+            }
         }
         final Call call = okHttpClient.newCall(request);
         addCall(call, tag);
@@ -125,7 +131,7 @@ public class HttpRequestAgent {
     private Request buildRequest(RequestParams params, Request.Builder builder, String url){
         Request request = null;
         if (params.requestMethod == RequestParams.RequestMethod.RequestMethodGet){
-            url = UrlUtils.getUrlWithQueryString(params.urlEncodeEnable == null ? urlEncodeEnable : params.urlEncodeEnable, url, params);
+            url = WrapperUtils.getUrlWithQueryString(params.urlEncodeEnable == null ? urlEncodeEnable : params.urlEncodeEnable, url, params);
             request = builder.url(url).get().build();
         }else{
             builder = builder.url(url);
@@ -261,6 +267,13 @@ public class HttpRequestAgent {
                 }
             }
         }
+    }
+
+    public String getCache(String cacheURL){
+        if (this.requestConfig.diskCache != null){
+            return this.requestConfig.diskCache.getString(cacheURL);
+        }
+        return null;
     }
 
     private final class RetryInterceptor implements Interceptor {
