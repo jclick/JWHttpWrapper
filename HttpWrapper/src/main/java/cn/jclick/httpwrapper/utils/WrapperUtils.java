@@ -1,13 +1,14 @@
 package cn.jclick.httpwrapper.utils;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.text.TextUtils;
 import android.util.Log;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 
 import cn.jclick.httpwrapper.request.HttpRequestAgent;
 import cn.jclick.httpwrapper.request.RequestConfig;
@@ -19,6 +20,13 @@ import cn.jclick.httpwrapper.request.RequestParams;
 public class WrapperUtils {
 
     public static final String TAG = "WrapperUtils";
+
+    public static boolean isOnline(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
 
     public static String getUrlWithQueryString(RequestParams params){
         if (params == null){
