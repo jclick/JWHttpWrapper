@@ -29,10 +29,14 @@ public abstract class ByteCallback extends Callback{
     }
 
     @Override
-    protected boolean isCacheProcessSuccess(ResponseData<byte[]> data) {
+    protected boolean isCacheProcessSuccess(ResponseData<String> data) {
         try{
-            data.setFromCache(true);
-            response(data);
+            if (!super.isCacheProcessSuccess(data)){
+                return false;
+            }
+            ResponseData responseData = convertCache(data);
+            responseData.setData(data.getData().getBytes(charset));
+            response(responseData);
             return true;
         }catch (Exception e){
             return false;

@@ -2,9 +2,6 @@ package cn.jclick.httpwrapper.callback;
 
 import android.util.Log;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
-
 import cn.jclick.httpwrapper.request.HttpRequestAgent;
 
 /**
@@ -30,8 +27,14 @@ public abstract class StringCallback extends Callback{
     }
 
     @Override
-    protected boolean isCacheProcessSuccess(ResponseData<byte[]> data) {
+    protected boolean isCacheProcessSuccess(ResponseData<String> data) {
         try{
+            if (!super.isCacheProcessSuccess(data)){
+                return false;
+            }
+            ResponseData responseData = convertCache(data);
+            responseData.setData(data.getData());
+            response(responseData);
             return true;
         }catch (Exception e){
             return false;

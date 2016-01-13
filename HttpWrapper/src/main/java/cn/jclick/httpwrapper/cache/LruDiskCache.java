@@ -117,9 +117,12 @@ public class LruDiskCache implements IDiskCache {
 		}
 
 		BufferedOutputStream os = new BufferedOutputStream(editor.newOutputStream(0), bufferSize);
-		boolean savedSuccessfully = false;
+		boolean savedSuccessfully = true;
 		try {
 			os.write(value.getBytes());
+		} catch (IOException e){
+			savedSuccessfully = false;
+			e.printStackTrace();
 		} finally {
 			Util.closeQuietly(os);
 		}
@@ -139,9 +142,12 @@ public class LruDiskCache implements IDiskCache {
 		}
 
 		BufferedOutputStream os = new BufferedOutputStream(editor.newOutputStream(0), bufferSize);
-		boolean savedSuccessfully = false;
+		boolean savedSuccessfully = true;
 		try {
 			os.write(value);
+		} catch (IOException e){
+			savedSuccessfully = false;
+			e.printStackTrace();
 		} finally {
 			Util.closeQuietly(os);
 		}
@@ -178,7 +184,7 @@ public class LruDiskCache implements IDiskCache {
 	}
 
 	@Override
-	public boolean putData(String url, ResponseData<byte[]> responseData) throws IOException{
+	public boolean putData(String url, ResponseData<String> responseData) throws IOException{
 		String data = JSON.toJSONString(responseData);
 		if (TextUtils.isEmpty(data)){
 			return false;
@@ -187,12 +193,12 @@ public class LruDiskCache implements IDiskCache {
 	}
 
 	@Override
-	public ResponseData<byte[]> getData(String url) {
+	public ResponseData<String> getData(String url) {
 		String data = getString(url);
 		if (TextUtils.isEmpty(data)){
 			return null;
 		}
-		ResponseData<byte[]> responseData = JSON.parseObject(data, new TypeReference<ResponseData<byte[]>>(){});
+		ResponseData<String> responseData = JSON.parseObject(data, new TypeReference<ResponseData<String>>(){});
 		if (responseData == null){
 			return null;
 		}

@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         HttpRequestAgent.getInstance().init(new RequestConfig.Builder(this).baseUrl("http://182.92.100.198:8888/")
-                .cacheMode(RequestConfig.HttpCacheMode.ALWAYS_CACHE).cacheTimeInSeconds(60 * 60).connectionTimeOut(30 *1000).build());
+                .cacheMode(RequestConfig.HttpCacheMode.ALWAYS_CACHE).cacheTimeInSeconds(3 * 60).connectionTimeOut(30 *1000).build());
 
         Map<String, String> map = new HashMap<>();
         map.put("token", "18610823346");
@@ -55,11 +55,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             protected void onResponse(ResponseData<String> responseData) {
-                try {
-                    Thread.sleep(3000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 System.out.println(responseData);
                 textView.setText(responseData.toString());
             }

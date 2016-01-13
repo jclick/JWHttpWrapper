@@ -36,10 +36,10 @@ public abstract class Callback {
         this.cacheURL = WrapperUtils.getUrlWithQueryString(params);
         switch (params.cacheMode) {
             case ALWAYS_CACHE:
-                return isCacheProcessSuccess(cache());
+                return !isCacheProcessSuccess(cache());
             case CACHE_WHEN_NO_NETWORK:
                 if (WrapperUtils.isOnline(HttpRequestAgent.getInstance().getConfig().context)) {
-                    return isCacheProcessSuccess(cache());
+                    return !isCacheProcessSuccess(cache());
                 }
                 break;
             case CACHE_FIRST:
@@ -64,18 +64,37 @@ public abstract class Callback {
         return new String(bytes, charset);
     }
 
-    public ResponseData<byte[]> cache() {
+    public ResponseData<String> cache() {
         if (HttpRequestAgent.getInstance().getConfig().diskCache != null){
             return HttpRequestAgent.getInstance().getConfig().diskCache.getData(cacheURL);
         }
         return null;
     }
 
-    protected boolean isCacheProcessSuccess(ResponseData<byte[]> data) {
+    protected boolean isCacheProcessSuccess(ResponseData<String> data) {
         if (data == null){
             return false;
         }
+        if (new Date().getTime() - data.getRequestTime().getTime() > params.cacheTimeInSeconds * 1000){
+            return false;
+        }
         return true;
+    }
+
+    /**
+     *
+     * @param cacheData cache数据
+     * @return 转换为要返回的数据
+     */
+    protected final ResponseData convertCache(ResponseData<String> cacheData){
+        ResponseData<String> responseData = new ResponseData<>();
+        responseData.setFromCache(true);
+        responseData.setDescription(cacheData.getDescription());
+        responseData.setRequestTime(cacheData.getRequestTime());
+        responseData.setRequestSuccess(cacheData.isRequestSuccess());
+        responseData.setParseSuccess(cacheData.isParseSuccess());
+        responseData.setResponseTime(cacheData.getResponseTime());
+        return responseData;
     }
 
     public final void onResponse(int statusCode, Map<String, List<String>> headers, Charset charset, InputStream response) {
@@ -91,8 +110,8 @@ public abstract class Callback {
             byte[] bytes = bytes(inputStream);
             if (params.cacheMode != RequestConfig.HttpCacheMode.NO_CACHE) {
                 if (HttpRequestAgent.getInstance().getConfig().diskCache != null) {
-                    ResponseData<byte[]> responseData = wrapResponseData();
-                    responseData.setData(bytes);
+                    ResponseData<String> responseData = wrapResponseData();
+                    responseData.setData(string(bytes));
                     responseData.setFromCache(true);
                     boolean flag = HttpRequestAgent.getInstance().getConfig().diskCache.putData(cacheURL, responseData);
                     if (!flag) {

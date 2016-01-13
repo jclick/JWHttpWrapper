@@ -17,9 +17,9 @@ public interface IDiskCache {
 
     byte[] getBytes(String url);
 
-    ResponseData<byte[]> getData(String url);
+    ResponseData<String> getData(String url);
 
-    boolean putData(String url, ResponseData<byte[]> responseData) throws IOException;
+    boolean putData(String url, ResponseData<String> responseData) throws IOException;
 
     boolean putString(String url, String value) throws IOException;
 
