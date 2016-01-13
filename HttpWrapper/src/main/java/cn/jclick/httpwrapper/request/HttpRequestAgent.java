@@ -35,8 +35,6 @@ public class HttpRequestAgent {
     private static HttpRequestAgent INSTANCE;
 
     private OkHttpClient okHttpClient;
-    private String baseUrl;
-    private boolean urlEncodeEnable;
 
     private RequestConfig requestConfig;
     private List<HandlerInterceptor> interceptorList;
@@ -64,8 +62,6 @@ public class HttpRequestAgent {
         }
         this.requestConfig = config;
         interceptorList = config.interceptorList;
-        this.baseUrl = config.baseUrl;
-        this.urlEncodeEnable = config.urlEncodeEnable;
         okHttpClient = new OkHttpClient().newBuilder().connectTimeout(config.connectionTimeOut, TimeUnit.MILLISECONDS)
                 .addInterceptor(new RetryInterceptor(config.maxRetries))
                 .connectionPool(new ConnectionPool(config.maxConnections, 5, TimeUnit.SECONDS))
@@ -129,7 +125,7 @@ public class HttpRequestAgent {
     private Request buildRequest(RequestParams params, Request.Builder builder, String url){
         Request request = null;
         if (params.requestMethod == RequestParams.RequestMethod.RequestMethodGet){
-            url = WrapperUtils.getUrlWithQueryString(params.urlEncodeEnable == null ? urlEncodeEnable : params.urlEncodeEnable, url, params);
+            url = WrapperUtils.getUrlWithQueryString(params.urlEncodeEnable == null ? getConfig().urlEncodeEnable : params.urlEncodeEnable, url, params);
             request = builder.url(url).get().build();
         }else{
             builder = builder.url(url);
@@ -174,10 +170,6 @@ public class HttpRequestAgent {
 
     public RequestConfig getConfig() {
         return requestConfig;
-    }
-
-    public void setConfig(RequestConfig config) {
-        this.requestConfig = config;
     }
 
     private synchronized void addCall(Call call, Object tag){
