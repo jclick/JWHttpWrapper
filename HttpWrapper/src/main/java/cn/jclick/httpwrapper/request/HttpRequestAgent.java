@@ -38,8 +38,6 @@ public class HttpRequestAgent {
     private String baseUrl;
     private boolean urlEncodeEnable;
 
-    private Context context;
-
     private RequestConfig requestConfig;
     private List<HandlerInterceptor> interceptorList;
     private final Map<Object, List<Call>> allRequestMap = Collections
@@ -60,9 +58,9 @@ public class HttpRequestAgent {
         return INSTANCE;
     }
 
-    public void init(Context context, RequestConfig config){
+    public void init(RequestConfig config){
         if (config == null){
-            requestConfig = new RequestConfig.Builder(context).defaultBuilder().build();
+            throw new NullPointerException("RequestConfig Can not Null");
         }
         this.requestConfig = config;
         interceptorList = config.interceptorList;
@@ -267,13 +265,6 @@ public class HttpRequestAgent {
                 }
             }
         }
-    }
-
-    public String getCache(String cacheURL){
-        if (this.requestConfig.diskCache != null){
-            return this.requestConfig.diskCache.getString(cacheURL);
-        }
-        return null;
     }
 
     private final class RetryInterceptor implements Interceptor {

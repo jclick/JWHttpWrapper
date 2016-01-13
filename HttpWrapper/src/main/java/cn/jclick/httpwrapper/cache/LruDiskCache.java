@@ -1,14 +1,21 @@
 package cn.jclick.httpwrapper.cache;
 
+import android.text.TextUtils;
 import android.util.Log;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 
+import cn.jclick.httpwrapper.callback.ResponseData;
+
 public class LruDiskCache implements IDiskCache {
 
 	private static final String TAG = "LruDiskCache";
+
 	public static final int DEFAULT_BUFFER_SIZE = 32 * 1024; // 32 Kb
 
 	private static final String ERROR_ARG_NULL = " argument must be not null";
@@ -168,6 +175,28 @@ public class LruDiskCache implements IDiskCache {
 		} catch (IOException e) {
 			Log.e(TAG, e.getMessage());
 		}
+	}
+
+	@Override
+	public boolean putData(String url, ResponseData<byte[]> responseData) throws IOException{
+		String data = JSON.toJSONString(responseData);
+		if (TextUtils.isEmpty(data)){
+			return false;
+		}
+		return putString(url, data);
+	}
+
+	@Override
+	public ResponseData<byte[]> getData(String url) {
+		String data = getString(url);
+		if (TextUtils.isEmpty(data)){
+			return null;
+		}
+		ResponseData<byte[]> responseData = JSON.parseObject(data, new TypeReference<ResponseData<byte[]>>(){});
+		if (responseData == null){
+			return null;
+		}
+		return responseData;
 	}
 
 	public void close() {

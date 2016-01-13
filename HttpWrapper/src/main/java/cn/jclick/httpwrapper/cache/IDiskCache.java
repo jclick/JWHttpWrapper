@@ -3,6 +3,8 @@ package cn.jclick.httpwrapper.cache;
 import java.io.File;
 import java.io.IOException;
 
+import cn.jclick.httpwrapper.callback.ResponseData;
+
 /**
  * Created by jclick on 16/1/6.
  */
@@ -14,6 +16,10 @@ public interface IDiskCache {
     String getString(String url);
 
     byte[] getBytes(String url);
+
+    ResponseData<byte[]> getData(String url);
+
+    boolean putData(String url, ResponseData<byte[]> responseData) throws IOException;
 
     boolean putString(String url, String value) throws IOException;
 

@@ -63,11 +63,7 @@ public class ResponseData<T> implements Serializable{
     }
 
     public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
+        return requestSuccess && parseSuccess;
     }
 
     public boolean isRequestSuccess() {
@@ -79,7 +75,7 @@ public class ResponseData<T> implements Serializable{
     }
 
     public boolean isParseSuccess() {
-        return parseSuccess;
+        return isRequestSuccess() && parseSuccess;
     }
 
     public void setParseSuccess(boolean parseSuccess) {
@@ -100,5 +96,19 @@ public class ResponseData<T> implements Serializable{
 
     public void setResponseTime(Date responseTime) {
         this.responseTime = responseTime;
+    }
+
+    @Override
+    public String toString() {
+        return "ResponseData{" +
+                "data=" + data +
+                ", description='" + description + '\'' +
+                ", fromCache=" + fromCache +
+                ", success=" + success +
+                ", requestSuccess=" + requestSuccess +
+                ", parseSuccess=" + parseSuccess +
+                ", requestTime=" + requestTime +
+                ", responseTime=" + responseTime +
+                '}';
     }
 }

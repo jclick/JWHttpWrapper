@@ -1,6 +1,7 @@
 package cn.jclick.demo;
 
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -9,10 +10,12 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import cn.jclick.httpwrapper.callback.ResponseData;
 import cn.jclick.httpwrapper.callback.StringCallback;
 import cn.jclick.httpwrapper.request.HttpRequestAgent;
 import cn.jclick.httpwrapper.request.RequestConfig;
@@ -22,12 +25,16 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "MainActivity";
 
+    private TextView textView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        textView = (TextView) findViewById(R.id.tv_hello);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -38,7 +45,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        HttpRequestAgent.getInstance().init(new RequestConfig.Builder().baseUrl("http://182.92.100.198:8888/").connectionTimeOut(30 *1000).build());
+        HttpRequestAgent.getInstance().init(new RequestConfig.Builder(this).baseUrl("http://182.92.100.198:8888/")
+                .cacheMode(RequestConfig.HttpCacheMode.ALWAYS_CACHE).cacheTimeInSeconds(60 * 60).connectionTimeOut(30 *1000).build());
 
         Map<String, String> map = new HashMap<>();
         map.put("token", "18610823346");
@@ -46,9 +54,14 @@ public class MainActivity extends AppCompatActivity {
         HttpRequestAgent.getInstance().executeRequest(params, new StringCallback(){
 
             @Override
-            public void onSuccess(String result) {
-                super.onSuccess(result);
-                Log.i(TAG, "response is " + result);
+            protected void onResponse(ResponseData<String> responseData) {
+                try {
+                    Thread.sleep(3000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(responseData);
+                textView.setText(responseData.toString());
             }
         });
     }

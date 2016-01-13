@@ -1,6 +1,7 @@
 package cn.jclick.httpwrapper.request;
 
 import android.content.Context;
+import android.os.Handler;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +34,7 @@ public final class RequestConfig {
     public final long cacheTimeInSeconds;
     public final HttpCacheMode cacheMode;
     public final Context context;
+    public final Handler mainHandler;
 
     private RequestConfig(final Builder builder) {
 
@@ -53,6 +55,7 @@ public final class RequestConfig {
             this.cacheMode = builder.cacheMode;
         }
         this.context = builder.context;
+        this.mainHandler = new Handler(context.getMainLooper());
         if(builder.diskCache == null){
             File cacheFileDir = StorageUtils.getCacheDirectory(this.context);
             try {

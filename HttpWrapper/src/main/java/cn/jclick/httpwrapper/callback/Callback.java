@@ -1,5 +1,7 @@
 package cn.jclick.httpwrapper.callback;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import java.io.IOException;
@@ -40,26 +42,39 @@ public abstract class Callback {
                     return isCacheProcessSuccess(cache());
                 }
                 break;
+            case CACHE_FIRST:
+                isCacheProcessSuccess(cache());
+                break;
         }
 
         return true;
     }
 
-    public byte[] bytes(InputStream stream) throws IOException {
+    public final byte[] bytes(InputStream stream) throws IOException {
         byte[] bytes = IOUtils.toByteArray(stream);
         IOUtils.closeQuietly(stream);
         return bytes;
     }
 
-    public String string(InputStream stream, Charset charset) throws IOException {
+    public final String string(InputStream stream, Charset charset) throws IOException {
         return new String(bytes(stream), charset);
     }
 
-    public String cache() {
-        return HttpRequestAgent.getInstance().getCache(cacheURL);
+    public final String string(byte[] bytes){
+        return new String(bytes, charset);
     }
 
-    protected boolean isCacheProcessSuccess(String data) {
+    public ResponseData<byte[]> cache() {
+        if (HttpRequestAgent.getInstance().getConfig().diskCache != null){
+            return HttpRequestAgent.getInstance().getConfig().diskCache.getData(cacheURL);
+        }
+        return null;
+    }
+
+    protected boolean isCacheProcessSuccess(ResponseData<byte[]> data) {
+        if (data == null){
+            return false;
+        }
         return true;
     }
 
@@ -68,12 +83,18 @@ public abstract class Callback {
         this.headers = headers;
         this.charset = charset;
         this.responseDate = new Date();
+        onSuccess(response);
+    }
 
+    protected void onSuccess(InputStream inputStream){
         try {
-            byte[] bytes = bytes(response);
+            byte[] bytes = bytes(inputStream);
             if (params.cacheMode != RequestConfig.HttpCacheMode.NO_CACHE) {
                 if (HttpRequestAgent.getInstance().getConfig().diskCache != null) {
-                    boolean flag = HttpRequestAgent.getInstance().getConfig().diskCache.putBytes(cacheURL, bytes);
+                    ResponseData<byte[]> responseData = wrapResponseData();
+                    responseData.setData(bytes);
+                    responseData.setFromCache(true);
+                    boolean flag = HttpRequestAgent.getInstance().getConfig().diskCache.putData(cacheURL, responseData);
                     if (!flag) {
                         Log.d(getClass().getName(), "response success, but save cache failed !");
                     }
@@ -83,20 +104,27 @@ public abstract class Callback {
         } catch (IOException e) {
             onError(e);
         }
-
     }
 
-    ;
-
     public void onError(Exception exception) {
+        responseDate = new Date();
         if (params.cacheMode == RequestConfig.HttpCacheMode.FAILED_SHOW_CACHE) {
-            String data = cache();
-            if (isCacheProcessSuccess(data)) {
+            if (isCacheProcessSuccess(cache())) {
                 return;
             }
         } else {
             onFailed(exception);
         }
+    }
+
+    protected ResponseData wrapResponseData(){
+        ResponseData responseData = new ResponseData();
+        responseData.setParseSuccess(true);
+        responseData.setRequestSuccess(true);
+        responseData.setFromCache(false);
+        responseData.setRequestTime(startRequestDate);
+        responseData.setResponseTime(responseDate);
+        return responseData;
     }
 
     protected abstract void onSuccess(byte[] bytes);
