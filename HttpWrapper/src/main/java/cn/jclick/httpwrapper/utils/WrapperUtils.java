@@ -29,6 +29,13 @@ public class WrapperUtils {
     }
 
     public static String getUrlWithQueryString(RequestParams params){
+        RequestConfig config = HttpRequestAgent.getInstance().getConfig();
+        boolean shouldEncodeUrl = (params.urlEncodeEnable == null ? config.urlEncodeEnable : params.urlEncodeEnable);
+
+        return getUrlWithQueryString(shouldEncodeUrl, getBareUrl(params), params);
+    }
+
+    public static String getBareUrl(RequestParams params){
         if (params == null){
             return null;
         }
@@ -45,9 +52,7 @@ public class WrapperUtils {
         if (!TextUtils.isEmpty(baseUrl)){
             url = baseUrl.concat(url);
         }
-        boolean shouldEncodeUrl = (params.urlEncodeEnable == null ? config.urlEncodeEnable : params.urlEncodeEnable);
-
-        return getUrlWithQueryString(shouldEncodeUrl, url, params);
+        return url;
     }
 
     public static String getUrlWithQueryString(boolean shouldEncodeUrl, String url, RequestParams params) {

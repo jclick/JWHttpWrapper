@@ -1,6 +1,5 @@
 package cn.jclick.httpwrapper.request;
 
-import android.content.Context;
 import android.text.TextUtils;
 
 import java.io.IOException;
@@ -11,7 +10,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import cn.jclick.httpwrapper.interceptor.HandlerInterceptor;
 import cn.jclick.httpwrapper.utils.WrapperUtils;
@@ -37,12 +40,23 @@ public class HttpRequestAgent {
     private OkHttpClient okHttpClient;
 
     private RequestConfig requestConfig;
-    private List<HandlerInterceptor> interceptorList;
     private final Map<Object, List<Call>> allRequestMap = Collections
             .synchronizedMap(new HashMap<Object, List<Call>>());
 
-    private HttpRequestAgent(){
+    private ExecutorService executorService = Executors.newCachedThreadPool(new ThreadFactory() {
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
 
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(Thread.currentThread().getThreadGroup(), r, "HttpRequestAgent" + threadNumber.getAndIncrement(), 0);
+            if (t.isDaemon())
+                t.setDaemon(false);
+            t.setPriority(Thread.NORM_PRIORITY);
+            return t;
+        }
+    });
+
+    private HttpRequestAgent(){
     }
 
     public static HttpRequestAgent getInstance(){
@@ -61,7 +75,6 @@ public class HttpRequestAgent {
             throw new NullPointerException("RequestConfig Can not Null");
         }
         this.requestConfig = config;
-        interceptorList = config.interceptorList;
         okHttpClient = new OkHttpClient().newBuilder().connectTimeout(config.connectionTimeOut, TimeUnit.MILLISECONDS)
                 .addInterceptor(new RetryInterceptor(config.maxRetries))
                 .connectionPool(new ConnectionPool(config.maxConnections, 5, TimeUnit.SECONDS))
@@ -69,57 +82,7 @@ public class HttpRequestAgent {
     }
 
     public void executeRequest(RequestParams params, final cn.jclick.httpwrapper.callback.Callback callback){
-
-        Request.Builder builder = new Request.Builder();
-        if (params.tag != null){
-            builder = builder.tag(params.tag);
-        }
-        if (params.requestHeaders != null){
-            for (String key : params.requestHeaders.keySet()){
-                builder = builder.addHeader(key, params.requestHeaders.get(key));
-            }
-        }
-        final Object tag = params.tag;
-        String baseUrl = null, url;
-        if (!TextUtils.isEmpty(params.baseUrl)){
-            baseUrl = params.baseUrl;
-        }else{
-            if (requestConfig != null){
-                baseUrl = requestConfig.baseUrl;
-            }
-        }
-        url = params.url;
-        if (!TextUtils.isEmpty(baseUrl)){
-            url = baseUrl.concat(url);
-        }
-        final Request request = buildRequest(params, builder, url);
-        if (callback != null){
-            boolean isNeedRequest = callback.beforeStart(params);
-            if (!isNeedRequest){
-                return;
-            }
-        }
-        final Call call = okHttpClient.newCall(request);
-        addCall(call, tag);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-                removeCallByTag(tag, call);
-                if (callback != null){
-                    callback.onError(e);
-                }
-            }
-
-            @Override
-            public void onResponse(Response response) throws IOException {
-                removeCallByTag(tag, call);
-                if(callback != null){
-                    MediaType mediaType = response.body().contentType();
-                    Charset charset = mediaType != null ? mediaType.charset(UTF_8) : UTF_8;
-                    callback.onResponse(response.code(), response.headers().toMultimap(), charset, response.body().byteStream());
-                }
-            }
-        });
+        executorService.execute(new RequestThread(params, callback));
     }
 
     private Request buildRequest(RequestParams params, Request.Builder builder, String url){
@@ -280,6 +243,74 @@ public class HttpRequestAgent {
                 response = chain.proceed(request);
             }
             return response;
+        }
+    }
+
+    private class RequestThread implements Runnable{
+        private RequestParams params;
+        private cn.jclick.httpwrapper.callback.Callback callback;
+
+        public RequestThread(RequestParams params, cn.jclick.httpwrapper.callback.Callback callback){
+            this.params = params;
+            this.callback = callback;
+        }
+
+        @Override
+        public void run() {
+            Request.Builder builder = new Request.Builder();
+            if (params.tag != null){
+                builder = builder.tag(params.tag);
+            }
+            if (params.requestHeaders != null){
+                for (String key : params.requestHeaders.keySet()){
+                    builder = builder.addHeader(key, params.requestHeaders.get(key));
+                }
+            }
+            final Object tag = params.tag;
+            String baseUrl = null, url;
+            if (!TextUtils.isEmpty(params.baseUrl)){
+                baseUrl = params.baseUrl;
+            }else{
+                if (requestConfig != null){
+                    baseUrl = requestConfig.baseUrl;
+                }
+            }
+            url = params.url;
+            if (!TextUtils.isEmpty(baseUrl)){
+                url = baseUrl.concat(url);
+            }
+
+            List<HandlerInterceptor> interceptorList = requestConfig.interceptorList;
+            
+
+            if (callback != null){
+                boolean isNeedRequest = callback.beforeStart(params);
+                if (!isNeedRequest){
+                    return;
+                }
+            }
+            final Request request = buildRequest(params, builder, url);
+            final Call call = okHttpClient.newCall(request);
+            addCall(call, tag);
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(Request request, IOException e) {
+                    removeCallByTag(tag, call);
+                    if (callback != null){
+                        callback.onError(e);
+                    }
+                }
+
+                @Override
+                public void onResponse(Response response) throws IOException {
+                    removeCallByTag(tag, call);
+                    if(callback != null){
+                        MediaType mediaType = response.body().contentType();
+                        Charset charset = mediaType != null ? mediaType.charset(UTF_8) : UTF_8;
+                        callback.onResponse(response.code(), response.headers().toMultimap(), charset, response.body().byteStream());
+                    }
+                }
+            });
         }
     }
 }

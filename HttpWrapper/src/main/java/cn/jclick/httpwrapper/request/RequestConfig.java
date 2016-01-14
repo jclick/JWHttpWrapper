@@ -35,6 +35,7 @@ public final class RequestConfig {
     public final HttpCacheMode cacheMode;
     public final Context context;
     public final Handler mainHandler;
+    public final boolean logEnable;
 
     private RequestConfig(final Builder builder) {
 
@@ -66,6 +67,7 @@ public final class RequestConfig {
         }else{
             this.diskCache = builder.diskCache;
         }
+        this.logEnable = builder.logEnable;
     }
 
     public static class Builder{
@@ -80,6 +82,8 @@ public final class RequestConfig {
         private IDiskCache diskCache;
         private boolean urlEncodeEnable = true;
         private Context context;
+
+        private boolean logEnable;
 
         public Builder(Context context){
             this.context = context.getApplicationContext();
@@ -119,6 +123,11 @@ public final class RequestConfig {
 
         public Builder cacheTimeInSeconds(long cacheTimeInSeconds){
             this.cacheTimeInSeconds = cacheTimeInSeconds;
+            return this;
+        }
+
+        public Builder logEnable(boolean logEnable){
+            this.logEnable = logEnable;
             return this;
         }
 

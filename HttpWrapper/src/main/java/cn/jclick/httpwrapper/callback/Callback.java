@@ -93,24 +93,26 @@ public abstract class Callback {
         responseData.setRequestTime(cacheData.getRequestTime());
         responseData.setRequestSuccess(cacheData.isRequestSuccess());
         responseData.setParseSuccess(cacheData.isParseSuccess());
+        responseData.setStatusCode(cacheData.getStatusCode());
+        responseData.setHeaders(cacheData.getHeaders());
         responseData.setResponseTime(cacheData.getResponseTime());
         return responseData;
     }
 
-    public final void onResponse(int statusCode, Map<String, List<String>> headers, Charset charset, InputStream response) {
+    public final ResponseData<String> onResponse(int statusCode, Map<String, List<String>> headers, Charset charset, InputStream response) {
         this.statusCode = statusCode;
         this.headers = headers;
         this.charset = charset;
         this.responseDate = new Date();
-        onSuccess(response);
+        return onSuccess(response);
     }
 
-    protected void onSuccess(InputStream inputStream){
+    protected ResponseData<String> onSuccess(InputStream inputStream){
+        ResponseData<String> responseData = wrapResponseData();
         try {
             byte[] bytes = bytes(inputStream);
             if (params.cacheMode != RequestConfig.HttpCacheMode.NO_CACHE) {
                 if (HttpRequestAgent.getInstance().getConfig().diskCache != null) {
-                    ResponseData<String> responseData = wrapResponseData();
                     responseData.setData(string(bytes));
                     responseData.setFromCache(true);
                     boolean flag = HttpRequestAgent.getInstance().getConfig().diskCache.putData(cacheURL, responseData);
@@ -123,6 +125,7 @@ public abstract class Callback {
         } catch (IOException e) {
             onError(e);
         }
+        return responseData;
     }
 
     public void onError(Exception exception) {
@@ -143,6 +146,8 @@ public abstract class Callback {
         responseData.setFromCache(false);
         responseData.setRequestTime(startRequestDate);
         responseData.setResponseTime(responseDate);
+        responseData.setStatusCode(statusCode);
+        responseData.setHeaders(headers);
         return responseData;
     }
 
