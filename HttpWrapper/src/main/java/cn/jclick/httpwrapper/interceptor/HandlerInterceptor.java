@@ -1,5 +1,6 @@
 package cn.jclick.httpwrapper.interceptor;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -19,12 +20,18 @@ public interface HandlerInterceptor {
     boolean preHandler(RequestParams params);
 
     /**
-     *请求结束后的回调
+     *请求成功后的回调
      * @param params  请求参数
      * @param statusCode  请求结束的状态码
      * @param headers 请求的headers
      */
-    void postHandle(RequestParams params, int statusCode, Map<String, List<String>> headers);
+    void postSuccessHandler(RequestParams params, int statusCode, Map<String, List<String>> headers);
+
+    /**
+     * 请求失败
+     * @param exception
+     */
+    void postFailedHandler(IOException exception);
 
     /**
      * 执行完毕Callback后的回调

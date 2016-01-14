@@ -2,6 +2,7 @@ package cn.jclick.httpwrapper.interceptor;
 
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +24,13 @@ public class LoggerInterceptor implements HandlerInterceptor{
     }
 
     @Override
-    public void postHandle(RequestParams params, int statusCode, Map<String, List<String>> headers) {
-        Log.i(TAG, "Request finish !");
+    public void postFailedHandler(IOException exception) {
+        Log.e(TAG, "Request failed !", exception);
+    }
+
+    @Override
+    public void postSuccessHandler(RequestParams params, int statusCode, Map<String, List<String>> headers) {
+        Log.i(TAG, "Request success !");
     }
 
     @Override

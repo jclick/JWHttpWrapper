@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import cn.jclick.httpwrapper.callback.ResponseData;
 import cn.jclick.httpwrapper.interceptor.HandlerInterceptor;
 import cn.jclick.httpwrapper.utils.WrapperUtils;
 import okhttp3.Call;
@@ -281,7 +282,9 @@ public class HttpRequestAgent {
             }
 
             List<HandlerInterceptor> interceptorList = requestConfig.interceptorList;
-            
+            if (!preHandler(interceptorList)){
+                return;
+            }
 
             if (callback != null){
                 boolean isNeedRequest = callback.beforeStart(params);
@@ -303,14 +306,33 @@ public class HttpRequestAgent {
 
                 @Override
                 public void onResponse(Response response) throws IOException {
+                    for (HandlerInterceptor interceptor : requestConfig.interceptorList){
+                        interceptor.postSuccessHandler(params, response.code(), response.headers().toMultimap());
+                    }
                     removeCallByTag(tag, call);
                     if(callback != null){
                         MediaType mediaType = response.body().contentType();
                         Charset charset = mediaType != null ? mediaType.charset(UTF_8) : UTF_8;
-                        callback.onResponse(response.code(), response.headers().toMultimap(), charset, response.body().byteStream());
+                        ResponseData<String> data = callback.onResponse(response.code(), response.headers().toMultimap(), charset, response.body().byteStream());
+                        for (HandlerInterceptor interceptor : requestConfig.interceptorList){
+                            interceptor.afterCompletion(params, data);
+                        }
                     }
                 }
             });
+        }
+
+        private boolean preHandler(List<HandlerInterceptor> list){
+
+            boolean isSuccess = false;
+            for (HandlerInterceptor interceptor : list){
+                if (!isSuccess){
+                    isSuccess = interceptor.preHandler(params);
+                }else{
+                    interceptor.preHandler(params);
+                }
+            }
+            return isSuccess;
         }
     }
 }
