@@ -12,14 +12,15 @@ import cn.jclick.httpwrapper.cache.IDiskCache;
 import cn.jclick.httpwrapper.cache.LruDiskCache;
 import cn.jclick.httpwrapper.cache.Md5FileNameGenerator;
 import cn.jclick.httpwrapper.interceptor.HandlerInterceptor;
+import cn.jclick.httpwrapper.interceptor.LoggerInterceptor;
 import cn.jclick.httpwrapper.utils.StorageUtils;
-import okhttp3.Request;
 
 /**
  * Created by XuYingjian on 16/1/6.
  */
 public final class RequestConfig {
 
+    private static final LoggerInterceptor loggerInterceptor = new LoggerInterceptor();
     private static final long DEFAULT_CACHE_SECONDS = 10 * 60;
     private static final HttpCacheMode DEFAULT_CACHE_MODE = HttpCacheMode.NO_CACHE;
 
@@ -128,6 +129,11 @@ public final class RequestConfig {
 
         public Builder logEnable(boolean logEnable){
             this.logEnable = logEnable;
+            if (this.logEnable){
+                interceptorList.add(loggerInterceptor);
+            }else{
+                interceptorList.remove(loggerInterceptor);
+            }
             return this;
         }
 
