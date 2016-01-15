@@ -297,7 +297,7 @@ public class HttpRequestAgent {
             addCall(call, tag);
             call.enqueue(new Callback() {
                 @Override
-                public void onFailure(Request request, IOException e) {
+                public void onFailure(Call call, IOException e) {
                     removeCallByTag(tag, call);
                     if (callback != null){
                         callback.onError(e);
@@ -305,11 +305,10 @@ public class HttpRequestAgent {
                 }
 
                 @Override
-                public void onResponse(Response response) throws IOException {
+                public void onResponse(Call call, Response response) throws IOException {
                     for (HandlerInterceptor interceptor : requestConfig.interceptorList){
                         interceptor.postSuccessHandler(params, response.code(), response.headers().toMultimap());
                     }
-                    removeCallByTag(tag, call);
                     if(callback != null){
                         MediaType mediaType = response.body().contentType();
                         Charset charset = mediaType != null ? mediaType.charset(UTF_8) : UTF_8;
@@ -318,6 +317,7 @@ public class HttpRequestAgent {
                             interceptor.afterCompletion(params, data);
                         }
                     }
+                    removeCallByTag(tag, call);
                 }
             });
         }

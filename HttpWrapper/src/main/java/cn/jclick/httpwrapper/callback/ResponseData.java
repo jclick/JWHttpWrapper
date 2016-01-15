@@ -129,7 +129,8 @@ public class ResponseData<T> implements Serializable{
     @Override
     public String toString() {
         return "ResponseData{" +
-                "fromCache=" + fromCache +
+                "description='" + description + '\'' +
+                ", fromCache=" + fromCache +
                 ", success=" + isSuccess() +
                 ", requestSuccess=" + requestSuccess +
                 ", parseSuccess=" + parseSuccess +
@@ -137,7 +138,7 @@ public class ResponseData<T> implements Serializable{
                 ", responseTime=" + responseTime +
                 ", statusCode=" + statusCode +
                 ", headers=" + headers +
-                ", description='" + description + '\'' +
+                ", data=" + data +
                 '}';
     }
 }

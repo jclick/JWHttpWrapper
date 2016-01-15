@@ -55,19 +55,57 @@
                 android:text="CACHE_WHEN_NO_NETWORK" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tv_request_result"
-            android:background="#f5f5f5"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/btn_object_callback"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:checked="true"
+                android:text="返回字符串" />
+
+            <CheckBox
+                android:id="@+id/btn_string_callback"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="返回对象" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:background="#ff99cc00"
+            android:gravity="center_vertical"
+            android:text="实时请求返回数据："
+            android:textColor="#fff" />
+
+        <TextView
+            android:id="@+id/tv_request_result"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#f5f5f5"
             android:text="" />
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="#ff99cc00"
+            android:gravity="center_vertical"
+            android:text="缓存返回数据："
+            android:textColor="#fff" />
+
+        <TextView
             android:id="@+id/tv_cache_result"
-            android:layout_marginTop="10dp"
-            android:background="#f5f5f5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="#f5f5f5"
             android:text="" />
     </LinearLayout>
 </ScrollView>
