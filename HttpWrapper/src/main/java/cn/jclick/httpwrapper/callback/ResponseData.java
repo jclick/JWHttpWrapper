@@ -130,7 +130,7 @@ public class ResponseData<T> implements Serializable{
     public String toString() {
         return "ResponseData{" +
                 "fromCache=" + fromCache +
-                ", success=" + success +
+                ", success=" + isSuccess() +
                 ", requestSuccess=" + requestSuccess +
                 ", parseSuccess=" + parseSuccess +
                 ", requestTime=" + requestTime +

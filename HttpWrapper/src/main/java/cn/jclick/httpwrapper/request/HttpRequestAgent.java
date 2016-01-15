@@ -324,7 +324,7 @@ public class HttpRequestAgent {
 
         private boolean preHandler(List<HandlerInterceptor> list){
 
-            boolean isSuccess = false;
+            boolean isSuccess = true;
             for (HandlerInterceptor interceptor : list){
                 if (!isSuccess){
                     isSuccess = interceptor.preHandler(params);

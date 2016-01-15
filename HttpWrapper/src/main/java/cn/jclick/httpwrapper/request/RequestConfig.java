@@ -146,14 +146,13 @@ public final class RequestConfig {
             return new RequestConfig(this);
         }
 
-        public Builder defaultBuilder(){
-            this.connectionTimeOut = 10 * 1000;
-            this.urlEncodeEnable = true;
-            return this;
-        }
     }
 
     public enum HttpCacheMode{
-        NO_CACHE, ALWAYS_CACHE, CACHE_FIRST, FAILED_SHOW_CACHE, CACHE_WHEN_NO_NETWORK
+        NO_CACHE,//不使用缓存
+        ALWAYS_CACHE,//缓存时间内，不发请求，直接返回缓存结果
+        CACHE_FIRST,//优先返回缓存结果，然后发送请求更新缓存
+        FAILED_SHOW_CACHE,//请求失败后展示缓存
+        CACHE_WHEN_NO_NETWORK//没有网络的时候展示缓存
     }
 }

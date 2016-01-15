@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import cn.jclick.httpwrapper.interceptor.LoggerInterceptor;
 import cn.jclick.httpwrapper.request.HttpRequestAgent;
 import cn.jclick.httpwrapper.request.RequestConfig;
 import cn.jclick.httpwrapper.request.RequestParams;
@@ -34,25 +35,33 @@ public abstract class Callback {
         this.startRequestDate = new Date();
         this.params = params;
         this.cacheURL = WrapperUtils.getUrlWithQueryString(params);
+        boolean isContinue = true;
         switch (params.cacheMode) {
             case ALWAYS_CACHE:
-                return !isCacheProcessSuccess(cache());
+                 isContinue = !isCacheProcessSuccess(cache());
+                break;
             case CACHE_WHEN_NO_NETWORK:
-                if (WrapperUtils.isOnline(HttpRequestAgent.getInstance().getConfig().context)) {
-                    return !isCacheProcessSuccess(cache());
+                if (!WrapperUtils.isOnline(HttpRequestAgent.getInstance().getConfig().context)) {
+                    isContinue = !isCacheProcessSuccess(cache());
                 }
                 break;
             case CACHE_FIRST:
                 isCacheProcessSuccess(cache());
                 break;
         }
-
-        return true;
+        if (!isContinue && HttpRequestAgent.getInstance().getConfig().logEnable){
+            Log.i(LoggerInterceptor.class.getName(), "Response from cache and stop the request!\n" + cache());
+        }
+        return isContinue;
     }
 
     public final byte[] bytes(InputStream stream) throws IOException {
-        byte[] bytes = IOUtils.toByteArray(stream);
-        IOUtils.closeQuietly(stream);
+        byte[] bytes;
+        try{
+            bytes = IOUtils.toByteArray(stream);
+        }finally {
+            IOUtils.closeQuietly(stream);
+        }
         return bytes;
     }
 
@@ -123,12 +132,13 @@ public abstract class Callback {
             }
             onSuccess(bytes);
         } catch (IOException e) {
+            responseData.setParseSuccess(false);
             onError(e);
         }
         return responseData;
     }
 
-    public void onError(Exception exception) {
+    public final void onError(Exception exception) {
         responseDate = new Date();
         if (params.cacheMode == RequestConfig.HttpCacheMode.FAILED_SHOW_CACHE) {
             if (isCacheProcessSuccess(cache())) {
@@ -151,7 +161,18 @@ public abstract class Callback {
         return responseData;
     }
 
-    protected abstract void onSuccess(byte[] bytes);
+    public ResponseData wrapFailedData(Exception exception){
+        Log.e(ByteCallback.class.getName(), "request failed..", exception);
+        ResponseData responseData = wrapResponseData();
+        responseData.setFromCache(false);
+        responseData.setRequestSuccess(false);
+        responseData.setDescription(exception.getMessage());
+        return responseData;
+    }
 
-    protected abstract void onFailed(Exception exception);
+    protected void onFailed(Exception exception) {
+
+    }
+
+    protected abstract void onSuccess(byte[] bytes);
 }

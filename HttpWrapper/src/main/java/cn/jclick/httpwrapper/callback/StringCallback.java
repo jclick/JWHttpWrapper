@@ -43,12 +43,7 @@ public abstract class StringCallback extends Callback{
 
     @Override
     protected void onFailed(Exception exception) {
-        Log.e(ByteCallback.class.getName(), "request failed..", exception);
-        ResponseData<String> responseData = wrapResponseData();
-        responseData.setFromCache(false);
-        responseData.setRequestSuccess(false);
-        responseData.setDescription(exception.getMessage());
-        onResponse(responseData);
+        response(wrapFailedData(exception));
     }
 
     protected abstract void onResponse(ResponseData<String> responseData);

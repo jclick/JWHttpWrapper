@@ -69,7 +69,7 @@ public class WrapperUtils {
             }
         }
 
-        if (params.requestParams != null) {
+        if (params.requestParams != null && !params.requestParams.isEmpty()) {
             String paramString = "";
             for (String key : params.requestParams.keySet()){
                 paramString += key + "=" + params.requestParams.get(key).toString();

@@ -22,6 +22,9 @@ public class RequestBuilder {
         if (params == null){
             return null;
         }
+        if (params.requestParams == null || params.requestParams.isEmpty()){
+            return RequestBody.create(MediaType.parse("text/x-markdown; charset=utf-8"), "");
+        }
         if (params.uploadFiles != null && params.uploadFiles.length > 0){
             return buildFileRequestBody(params);
         }else{
