@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         tvRequestResult = (TextView) findViewById(R.id.tv_request_result);
 
         HttpRequestAgent.getInstance().init(new RequestConfig.Builder(this).logEnable(true).cacheMode(RequestConfig.HttpCacheMode.NO_CACHE)
-                .baseUrl("").baseUrl("http://ip.taobao.com/").addInterceptor(new HandlerInterceptor() {
+                .baseUrl("http://ip.taobao.com/").addInterceptor(new HandlerInterceptor() {
                     @Override
                     public boolean preHandler(RequestParams params) {
                         //TODO 请求之前的拦截  返回值决定是否继续请求
@@ -103,8 +103,7 @@ public class MainActivity extends AppCompatActivity {
                     public void afterCompletion(RequestParams params, ResponseData<String> responseData) {
                         //TODO 请求逻辑处理完毕的回调
                     }
-                })
-                .cacheMode(RequestConfig.HttpCacheMode.ALWAYS_CACHE).cacheTimeInSeconds(3 * 60).connectionTimeOut(30 *1000).build());
+                }).cacheTimeInSeconds(3 * 60).connectionTimeOut(30 *1000).build());
 
 
         findViewById(R.id.btn_no_cache).setOnClickListener(new View.OnClickListener() {

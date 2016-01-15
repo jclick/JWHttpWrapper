@@ -151,7 +151,7 @@ public final class RequestConfig {
     public enum HttpCacheMode{
         NO_CACHE,//不使用缓存
         ALWAYS_CACHE,//缓存时间内，不发请求，直接返回缓存结果
-        CACHE_FIRST,//优先返回缓存结果，然后发送请求更新缓存
+        CACHE_FIRST,//优先返回缓存结果，然后发送请求.（总共返回二次数据）
         FAILED_SHOW_CACHE,//请求失败后展示缓存
         CACHE_WHEN_NO_NETWORK//没有网络的时候展示缓存
     }
