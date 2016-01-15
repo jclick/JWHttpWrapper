@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         stringCb = (CheckBox) findViewById(R.id.btn_string_callback);
 
         callback = stringCallback;
-        requestParams.put("ip", " 221.217.176.144");
+        requestParams.put("ip", "221.217.176.144");
         tvCacheResult = (TextView) findViewById(R.id.tv_cache_result);
         tvRequestResult = (TextView) findViewById(R.id.tv_request_result);
 
@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 tvCacheResult.setText("");
                 tvRequestResult.setText("");
-                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo.php").cacheMode(RequestConfig.HttpCacheMode.NO_CACHE).post().build();
+                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo2.php").cacheMode(RequestConfig.HttpCacheMode.NO_CACHE).post().build();
                 HttpRequestAgent.getInstance().executeRequest(params, callback);
             }
         });
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 tvCacheResult.setText("");
                 tvRequestResult.setText("");
-                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo.php").cacheMode(RequestConfig.HttpCacheMode.ALWAYS_CACHE).post().build();
+                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo2.php").cacheMode(RequestConfig.HttpCacheMode.ALWAYS_CACHE).post().build();
                 HttpRequestAgent.getInstance().executeRequest(params, callback);
             }
         });
@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 tvCacheResult.setText("");
                 tvRequestResult.setText("");
-                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo.php").cacheMode(RequestConfig.HttpCacheMode.CACHE_FIRST).post().build();
+                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo2.php").cacheMode(RequestConfig.HttpCacheMode.CACHE_FIRST).post().build();
                 HttpRequestAgent.getInstance().executeRequest(params, callback);
             }
         });
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 tvCacheResult.setText("");
                 tvRequestResult.setText("");
-                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo.php").cacheMode(RequestConfig.HttpCacheMode.CACHE_WHEN_NO_NETWORK).post().build();
+                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo2.php").cacheMode(RequestConfig.HttpCacheMode.CACHE_WHEN_NO_NETWORK).post().build();
                 HttpRequestAgent.getInstance().executeRequest(params, callback);
             }
         });
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 tvCacheResult.setText("");
                 tvRequestResult.setText("");
-                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("special/time/").cacheMode(RequestConfig.HttpCacheMode.FAILED_SHOW_CACHE).post().build();
+                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo2.php").cacheMode(RequestConfig.HttpCacheMode.FAILED_SHOW_CACHE).post().build();
                 HttpRequestAgent.getInstance().executeRequest(params, callback);
             }
         });
