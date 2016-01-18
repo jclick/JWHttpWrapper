@@ -5,6 +5,7 @@
 3. 自定义Interceptor。可以拦截数据进行处理
 4. 请求返回数据处理在单独现成进行，提供的回调方法在UI现成进行，可以直接用返回的数据更新UI
 5. 支持发送请求的时候设置Tag, 然后单个或者批量取消请求
+6. 支持进度提示
 
 ###  使用说明
 - 初始化
@@ -69,6 +70,12 @@ RequestConfig config = new RequestConfig.Builder(this).logEnable(true).cacheMode
             }else{
                 Toast.makeText(MainActivity.this, responseData.getDescription(), Toast.LENGTH_LONG).show();
             }
+        }
+        
+        @Override
+        public void onProgress(long bytesWritten, long totalSize) {
+            super.onProgress(bytesWritten, totalSize);
+            //TODO  you can update ui here
         }
     }
 ```
