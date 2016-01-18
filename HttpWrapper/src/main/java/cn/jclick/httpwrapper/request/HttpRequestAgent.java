@@ -312,7 +312,7 @@ public class HttpRequestAgent {
                     if(callback != null){
                         MediaType mediaType = response.body().contentType();
                         Charset charset = mediaType != null ? mediaType.charset(UTF_8) : UTF_8;
-                        ResponseData<String> data = callback.onResponse(response.code(), response.headers().toMultimap(), charset, response.body().byteStream());
+                        ResponseData<String> data = callback.onResponse(response.code(), response.headers().toMultimap(), charset, response.body().byteStream(), response.body().contentLength());
                         for (HandlerInterceptor interceptor : requestConfig.interceptorList){
                             interceptor.afterCompletion(params, data);
                         }

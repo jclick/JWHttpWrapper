@@ -49,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, responseData.getDescription(), Toast.LENGTH_LONG).show();
             }
         }
+
+        @Override
+        public void onProgress(long bytesWritten, long totalSize) {
+            super.onProgress(bytesWritten, totalSize);
+            //TODO  you can update ui here
+        }
     } ;
 
     private ObjectCallback<DemoResultBean<Location>> objCallback = new ObjectCallback<DemoResultBean<Location>>(new TypeReference<DemoResultBean<Location>>(){}) {
@@ -63,6 +69,12 @@ public class MainActivity extends AppCompatActivity {
             }else{
                 Toast.makeText(MainActivity.this, responseData.getDescription(), Toast.LENGTH_LONG).show();
             }
+        }
+
+        @Override
+        public void onProgress(long bytesWritten, long totalSize) {
+            super.onProgress(bytesWritten, totalSize);
+            //TODO  you can update ui here
         }
     };
 

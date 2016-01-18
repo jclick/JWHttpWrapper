@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -24,6 +25,7 @@ import cn.jclick.httpwrapper.utils.WrapperUtils;
 public abstract class Callback {
     protected Date startRequestDate;
     protected Date responseDate;
+    protected long contentLength;
     protected RequestParams params;
     protected int statusCode;
     protected Map<String, List<String>> headers;
@@ -58,11 +60,34 @@ public abstract class Callback {
     public final byte[] bytes(InputStream stream) throws IOException {
         byte[] bytes;
         try{
-            bytes = IOUtils.toByteArray(stream);
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            long count = 0;
+            int n = 0;
+            byte[] arr = new byte[4196];
+            while (-1 != (n = stream.read(arr))) {
+                output.write(arr, 0, n);
+                count += n;
+
+                sendProgress(count, contentLength);
+            }
+            if (count > Integer.MAX_VALUE) {
+                throw new IOException("input stream length error");
+            }
+            bytes = output.toByteArray();
+
         }finally {
             IOUtils.closeQuietly(stream);
         }
         return bytes;
+    }
+
+    public final void sendProgress(final long writeLength, final long contentLength){
+        HttpRequestAgent.getInstance().getConfig().mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                onProgress(writeLength, contentLength);
+            }
+        });
     }
 
     public final String string(InputStream stream, Charset charset) throws IOException {
@@ -108,10 +133,11 @@ public abstract class Callback {
         return responseData;
     }
 
-    public final ResponseData<String> onResponse(int statusCode, Map<String, List<String>> headers, Charset charset, InputStream response) {
+    public final ResponseData<String> onResponse(int statusCode, Map<String, List<String>> headers, Charset charset, InputStream response, long contentLength) {
         this.statusCode = statusCode;
         this.headers = headers;
         this.charset = charset;
+        this.contentLength = contentLength;
         this.responseDate = new Date();
         return onSuccess(response);
     }
@@ -154,6 +180,7 @@ public abstract class Callback {
         responseData.setParseSuccess(true);
         responseData.setRequestSuccess(true);
         responseData.setFromCache(false);
+        responseData.setContentLength(contentLength);
         responseData.setRequestTime(startRequestDate);
         responseData.setResponseTime(responseDate);
         responseData.setStatusCode(statusCode);
@@ -168,6 +195,12 @@ public abstract class Callback {
         responseData.setRequestSuccess(false);
         responseData.setDescription(exception.getMessage());
         return responseData;
+    }
+
+    public void onProgress(long bytesWritten, long totalSize) {
+        if (HttpRequestAgent.getInstance().getConfig().logEnable){
+            Log.i("onProgress", String.format("Progress %d from %d (%2.0f%%)", bytesWritten, totalSize, (totalSize > 0) ? (bytesWritten * 1.0 / totalSize) * 100 : -1));
+        }
     }
 
     protected void onFailed(Exception exception) {

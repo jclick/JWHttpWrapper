@@ -46,6 +46,11 @@ public class ResponseData<T> implements Serializable{
     private int statusCode;
 
     /**
+     * 返回数据字节流长度
+     */
+    private long contentLength;
+
+    /**
      * 请求返回的headers
      */
     private Map<String, List<String>> headers;
@@ -120,6 +125,14 @@ public class ResponseData<T> implements Serializable{
 
     public Map<String, List<String>> getHeaders() {
         return headers;
+    }
+
+    public long getContentLength() {
+        return contentLength;
+    }
+
+    public void setContentLength(long contentLength) {
+        this.contentLength = contentLength;
     }
 
     public void setHeaders(Map<String, List<String>> headers) {
