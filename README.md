@@ -79,6 +79,32 @@ RequestConfig config = new RequestConfig.Builder(this).logEnable(true).cacheMode
         }
     }
 ```
+>支持设置文件路径，直接下载生成为文件
+
+```java
+fileCallback = new FileCallback(downloadFile.getAbsolutePath()) {
+            @Override
+            protected void onResponse(ResponseData<File> responseData) {
+                File file = responseData.getData();
+                if (responseData.isSuccess()){
+                    if (responseData.isFromCache()){
+                        tvCacheResult.setText(responseData.toString() + "\n文件最后修改时间" + new Date(file.lastModified()) + "\n文件路径：" + file.getAbsolutePath());
+                    }else{
+                        tvRequestResult.setText(responseData.toString() + "\n文件最后修改时间" + new Date(file.lastModified()) + "\n文件路径：" + file.getAbsolutePath());
+                    }
+                }else{
+                    Toast.makeText(MainActivity.this, responseData.getDescription(), Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onProgress(long bytesWritten, long totalSize) {
+                super.onProgress(bytesWritten, totalSize);
+            }
+        };
+        
+```
+
 - 取消请求
 
 ```java
