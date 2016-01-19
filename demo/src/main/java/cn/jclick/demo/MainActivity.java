@@ -10,14 +10,18 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import cn.jclick.httpwrapper.callback.Callback;
+import cn.jclick.httpwrapper.callback.FileCallback;
 import cn.jclick.httpwrapper.callback.ObjectCallback;
 import cn.jclick.httpwrapper.callback.ResponseData;
 import cn.jclick.httpwrapper.callback.StringCallback;
@@ -25,14 +29,22 @@ import cn.jclick.httpwrapper.interceptor.HandlerInterceptor;
 import cn.jclick.httpwrapper.request.HttpRequestAgent;
 import cn.jclick.httpwrapper.request.RequestConfig;
 import cn.jclick.httpwrapper.request.RequestParams;
+import cn.jclick.httpwrapper.utils.StorageUtils;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String JSON_URL = "http://ip.taobao.com/service/getIpInfo2.php";
+    private static final String FILE_URL = "https://avatars0.githubusercontent.com/u/3241585?v=3&s=460";
+
+    private File downloadFile;
+
+    private String targetURL;
     private TextView tvCacheResult;
     private TextView tvRequestResult;
 
     private CheckBox objCb;
     private CheckBox stringCb;
+    private CheckBox fileCb;
 
     private Map<String,  String> requestParams = new HashMap<>();
     private Callback callback;
@@ -78,23 +90,26 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private FileCallback fileCallback;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        downloadFile = new File(StorageUtils.getCacheDirectory(this), "test.jpeg");
+        targetURL = JSON_URL;
         objCb = (CheckBox) findViewById(R.id.btn_object_callback);
         stringCb = (CheckBox) findViewById(R.id.btn_string_callback);
+        fileCb = (CheckBox) findViewById(R.id.btn_file_callback);
 
         callback = stringCallback;
-        requestParams.put("ip", "221.217.176.144");
         tvCacheResult = (TextView) findViewById(R.id.tv_cache_result);
         tvRequestResult = (TextView) findViewById(R.id.tv_request_result);
 
         HttpRequestAgent.getInstance().init(new RequestConfig.Builder(this).logEnable(true).cacheMode(RequestConfig.HttpCacheMode.NO_CACHE)
-                .baseUrl("http://ip.taobao.com/").addInterceptor(new HandlerInterceptor() {
+                .addInterceptor(new HandlerInterceptor() {
                     @Override
                     public boolean preHandler(RequestParams params) {
                         //TODO 请求之前的拦截  返回值决定是否继续请求
@@ -123,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 tvCacheResult.setText("");
                 tvRequestResult.setText("");
-                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo2.php").cacheMode(RequestConfig.HttpCacheMode.NO_CACHE).post().build();
+                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url(targetURL).cacheMode(RequestConfig.HttpCacheMode.NO_CACHE).get().build();
                 HttpRequestAgent.getInstance().executeRequest(params, callback);
             }
         });
@@ -132,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 tvCacheResult.setText("");
                 tvRequestResult.setText("");
-                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo2.php").cacheMode(RequestConfig.HttpCacheMode.ALWAYS_CACHE).post().build();
+                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url(targetURL).cacheMode(RequestConfig.HttpCacheMode.ALWAYS_CACHE).get().build();
                 HttpRequestAgent.getInstance().executeRequest(params, callback);
             }
         });
@@ -141,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 tvCacheResult.setText("");
                 tvRequestResult.setText("");
-                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo2.php").cacheMode(RequestConfig.HttpCacheMode.CACHE_FIRST).post().build();
+                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url(targetURL).cacheMode(RequestConfig.HttpCacheMode.CACHE_FIRST).get().build();
                 HttpRequestAgent.getInstance().executeRequest(params, callback);
             }
         });
@@ -150,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 tvCacheResult.setText("");
                 tvRequestResult.setText("");
-                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo2.php").cacheMode(RequestConfig.HttpCacheMode.CACHE_WHEN_NO_NETWORK).post().build();
+                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url(targetURL).cacheMode(RequestConfig.HttpCacheMode.CACHE_WHEN_NO_NETWORK).get().build();
                 HttpRequestAgent.getInstance().executeRequest(params, callback);
             }
         });
@@ -159,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 tvCacheResult.setText("");
                 tvRequestResult.setText("");
-                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url("service/getIpInfo2.php").cacheMode(RequestConfig.HttpCacheMode.FAILED_SHOW_CACHE).post().build();
+                RequestParams params = new RequestParams.Builder().requestParams(requestParams).url(targetURL).cacheMode(RequestConfig.HttpCacheMode.FAILED_SHOW_CACHE).get().build();
                 HttpRequestAgent.getInstance().executeRequest(params, callback);
             }
         });
@@ -167,8 +182,12 @@ public class MainActivity extends AppCompatActivity {
         objCb.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                requestParams.clear();
+                requestParams.put("ip", "221.217.176.144");
+                targetURL = JSON_URL;
                 objCb.setChecked(true);
                 stringCb.setChecked(false);
+                fileCb.setChecked(false);
                 callback = objCallback;
             }
         });
@@ -176,11 +195,48 @@ public class MainActivity extends AppCompatActivity {
         stringCb.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                requestParams.clear();
+                requestParams.put("ip", "221.217.176.144");
+                targetURL = JSON_URL;
                 objCb.setChecked(false);
                 stringCb.setChecked(true);
+                fileCb.setChecked(false);
                 callback = stringCallback;
             }
         });
+
+        fileCb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestParams.clear();
+                targetURL = FILE_URL;
+                objCb.setChecked(false);
+                stringCb.setChecked(false);
+                fileCb.setChecked(true);
+                callback = fileCallback;
+            }
+        });
+
+        fileCallback = new FileCallback(downloadFile.getAbsolutePath()) {
+            @Override
+            protected void onResponse(ResponseData<File> responseData) {
+                File file = responseData.getData();
+                if (responseData.isSuccess()){
+                    if (responseData.isFromCache()){
+                        tvCacheResult.setText(responseData.toString() + "\n文件最后修改时间" + new Date(file.lastModified()) + "\n文件路径：" + file.getAbsolutePath());
+                    }else{
+                        tvRequestResult.setText(responseData.toString() + "\n文件最后修改时间" + new Date(file.lastModified()) + "\n文件路径：" + file.getAbsolutePath());
+                    }
+                }else{
+                    Toast.makeText(MainActivity.this, responseData.getDescription(), Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onProgress(long bytesWritten, long totalSize) {
+                super.onProgress(bytesWritten, totalSize);
+            }
+        };
     }
 
     @Override
