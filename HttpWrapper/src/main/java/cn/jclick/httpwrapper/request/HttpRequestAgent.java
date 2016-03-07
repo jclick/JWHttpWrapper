@@ -3,6 +3,7 @@ package cn.jclick.httpwrapper.request;
 import android.text.TextUtils;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
@@ -249,11 +250,11 @@ public class HttpRequestAgent {
 
     private class RequestThread implements Runnable{
         private RequestParams params;
-        private cn.jclick.httpwrapper.callback.Callback callback;
+        private WeakReference<cn.jclick.httpwrapper.callback.Callback> weakCallback;
 
         public RequestThread(RequestParams params, cn.jclick.httpwrapper.callback.Callback callback){
             this.params = params;
-            this.callback = callback;
+            weakCallback = new WeakReference<cn.jclick.httpwrapper.callback.Callback>(callback);
         }
 
         @Override
@@ -286,8 +287,8 @@ public class HttpRequestAgent {
                 return;
             }
 
-            if (callback != null){
-                boolean isNeedRequest = callback.beforeStart(params);
+            if (weakCallback.get() != null){
+                boolean isNeedRequest = weakCallback.get().beforeStart(params);
                 if (!isNeedRequest){
                     return;
                 }
@@ -299,8 +300,8 @@ public class HttpRequestAgent {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     removeCallByTag(tag, call);
-                    if (callback != null){
-                        callback.onError(e);
+                    if (weakCallback.get() != null){
+                        weakCallback.get().onError(e);
                     }
                 }
 
@@ -309,10 +310,10 @@ public class HttpRequestAgent {
                     for (HandlerInterceptor interceptor : requestConfig.interceptorList){
                         interceptor.postSuccessHandler(params, response.code(), response.headers().toMultimap());
                     }
-                    if(callback != null){
+                    if(weakCallback.get() != null){
                         MediaType mediaType = response.body().contentType();
                         Charset charset = mediaType != null ? mediaType.charset(UTF_8) : UTF_8;
-                        ResponseData<String> data = callback.onResponse(response.code(), response.headers().toMultimap(), charset, response.body().byteStream(), response.body().contentLength());
+                        ResponseData<String> data = weakCallback.get().onResponse(response.code(), response.headers().toMultimap(), charset, response.body().byteStream(), response.body().contentLength());
                         for (HandlerInterceptor interceptor : requestConfig.interceptorList){
                             interceptor.afterCompletion(params, data);
                         }
